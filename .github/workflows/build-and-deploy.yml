@@ -37,14 +37,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       
+      - name: Generate version info
+        id: version
+        run: |
+          VERSION_NAME=$(date +'%Y.%m.%d')
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Generated VERSION_NAME: $VERSION_NAME"
+          echo "Using VERSION_CODE: ${{ github.run_number }}"
+      
       - name: Create gradle.properties with signing credentials
         run: |
           echo "RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }}" >> gradle.properties
           echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}" >> gradle.properties
           echo "RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}" >> gradle.properties
           echo "APP_PACKAGE=${{ secrets.APP_PACKAGE }}" >> gradle.properties
-          echo "APP_VERSION_NAME=${{ secrets.APP_VERSION_NAME }}" >> gradle.properties
-          echo "APP_VERSION_CODE=${{ secrets.APP_VERSION_CODE }}" >> gradle.properties
+          echo "APP_VERSION_NAME=${{ steps.version.outputs.version_name }}" >> gradle.properties
+          echo "APP_VERSION_CODE=${{ github.run_number }}" >> gradle.properties
       
       - name: Build Release APK
         run: ./gradlew :TMessagesProj_App:assembleAfatRelease --stacktrace
@@ -66,6 +74,7 @@ jobs:
           groups: testers
           file: TMessagesProj_App/build/outputs/apk/afat/release/app.apk
           releaseNotes: |
-            Build from commit: ${{ github.sha }}
+            Version: ${{ steps.version.outputs.version_name }} (Build #${{ github.run_number }})
             Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
             Commit message: ${{ github.event.head_commit.message }}

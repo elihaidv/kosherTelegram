@@ -12,19 +12,22 @@ To use the GitHub Actions workflow, you need to configure the following secrets 
 2. **RELEASE_KEY_ALIAS** - Alias of the key in the keystore
 3. **RELEASE_KEY_PASSWORD** - Password for the key
 4. **APP_PACKAGE** - Application package name (e.g., `org.telegram.messenger`)
-5. **APP_VERSION_NAME** - Version name (e.g., `10.0.0`)
-6. **APP_VERSION_CODE** - Version code (e.g., `1000`)
 
 ### Firebase Secrets
 
-7. **FIREBASE_APP_ID** - Your Firebase App ID
+5. **FIREBASE_APP_ID** - Your Firebase App ID
    - Found in Firebase Console → Project Settings → General → Your apps
    - Format: `1:123456789:android:abcdef123456`
 
-8. **FIREBASE_SERVICE_CREDENTIALS** - Firebase service account credentials JSON
+6. **FIREBASE_SERVICE_CREDENTIALS** - Firebase service account credentials JSON
    - Go to Firebase Console → Project Settings → Service accounts
    - Click "Generate new private key"
    - Copy the entire JSON content
+
+### Automatic Version Generation
+
+- **APP_VERSION_NAME** is automatically generated based on the build date (format: `YYYY.MM.DD`, e.g., `2025.10.19`)
+- **APP_VERSION_CODE** is automatically set to the GitHub Actions run number (increments with each workflow run)
 
 ## How to Add Secrets to GitHub
 
