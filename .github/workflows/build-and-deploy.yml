@@ -1,0 +1,71 @@
+name: Build and Deploy Android App
+
+on:
+  push:
+    branches:
+      - '**'  # Trigger on push to any branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      
+      - name: Create gradle.properties with signing credentials
+        run: |
+          echo "RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }}" >> gradle.properties
+          echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}" >> gradle.properties
+          echo "RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}" >> gradle.properties
+          echo "APP_PACKAGE=${{ secrets.APP_PACKAGE }}" >> gradle.properties
+          echo "APP_VERSION_NAME=${{ secrets.APP_VERSION_NAME }}" >> gradle.properties
+          echo "APP_VERSION_CODE=${{ secrets.APP_VERSION_CODE }}" >> gradle.properties
+      
+      - name: Build Release APK
+        run: ./gradlew :TMessagesProj_App:assembleAfatRelease --stacktrace
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+      
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: TMessagesProj_App/build/outputs/apk/afat/release/*.apk
+          retention-days: 30
+      
+      - name: Upload APK to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
+          groups: testers
+          file: TMessagesProj_App/build/outputs/apk/afat/release/app.apk
+          releaseNotes: |
+            Build from commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+            Commit message: ${{ github.event.head_commit.message }}
