@@ -362,6 +362,8 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
         });
         item.setSearchFieldHint(LocaleController.getString(R.string.Search));
         item.setContentDescription(LocaleController.getString(R.string.Search));
+        // Hide search bar completely
+        item.setVisibility(View.GONE);
         if (!createSecretChat && !returnAsResult) {
             sortItem = menu.addItem(sort_button, sortByName ? R.drawable.msg_contacts_time : R.drawable.msg_contacts_name);
             sortItem.setContentDescription(LocaleController.getString(R.string.AccDescrContactSorting));

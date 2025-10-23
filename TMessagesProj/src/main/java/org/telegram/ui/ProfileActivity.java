@@ -3876,9 +3876,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (sharedMediaLayout.getSaveItem() != null) {
                 sharedMediaLayout.getSaveItem().setVisibility(View.GONE);
             }
-            if (expandPhoto) {
-                searchItem.setVisibility(View.GONE);
-            }
+            // Hide search bar completely
+            searchItem.setVisibility(View.GONE);
         }
 
         videoCallItem = menu.addItem(video_call_item, R.drawable.profile_video);
