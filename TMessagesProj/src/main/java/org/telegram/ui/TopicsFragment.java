@@ -789,6 +789,8 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
             editText.setHintTextColor(Theme.getColor(Theme.key_player_time));
             editText.setCursorColor(Theme.getColor(Theme.key_chat_messagePanelCursor));
         }
+        // Hide search bar completely
+        searchItem.setVisibility(View.GONE);
         other = menu.addItem(0, R.drawable.ic_ab_other, themeDelegate);
         other.addSubItem(toggle_id, R.drawable.msg_discussion, LocaleController.getString(R.string.TopicViewAsMessages));
         addMemberSubMenu = other.addSubItem(add_member_id, R.drawable.msg_addcontact, LocaleController.getString(R.string.AddMember));

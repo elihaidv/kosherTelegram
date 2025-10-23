@@ -4049,11 +4049,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             searchItem.setIsSearchField(true);
             searchItem.setActionBarMenuItemSearchListener(getSearchItemListener());
             searchItem.setSearchFieldHint(isSupportedTags() ? LocaleController.getString(R.string.SavedTagSearchHint) : LocaleController.getString(R.string.Search));
-            if (chatMode == MODE_SAVED || chatMode == MODE_SUGGESTIONS || threadMessageId == 0 && !UserObject.isReplyUser(currentUser) || threadMessageObject != null && threadMessageObject.getRepliesCount() < 10) {
-                searchItem.setVisibility(View.GONE);
-            } else {
-                searchItem.setVisibility(View.VISIBLE);
-            }
+            // Hide search bar completely
+            searchIconItem.setVisibility(View.GONE);
+            searchItem.setVisibility(View.GONE);
             searchItemVisible = false;
         }
 
