@@ -388,65 +388,20 @@ public class Browser {
                 }
                 uri = Uri.parse("https://" + finalPath);
             }
-            if (allowCustom && !SharedConfig.inappBrowser && SharedConfig.customTabs && !internalUri && !scheme.equals("tel") && !isTonsite(uri.toString())) {
-                if (forceBrowser[0] || !openInExternalApp(context, uri.toString(), false) || !hasAppToOpen(context, uri.toString())) {
-                    if (MessagesController.getInstance(currentAccount).authDomains.contains(host)) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        ApplicationLoader.applicationContext.startActivity(intent);
-                        return;
-                    }
-
-                    Intent share = new Intent(ApplicationLoader.applicationContext, ShareBroadcastReceiver.class);
-                    share.setAction(Intent.ACTION_SEND);
-
-                    PendingIntent copy = PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 0, new Intent(ApplicationLoader.applicationContext, CustomTabsCopyReceiver.class), PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
-                    CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder(getSession());
-
-                    builder.addMenuItem(LocaleController.getString(R.string.CopyLink), copy);
-
-                    builder.setToolbarColor(Theme.getColor(Theme.key_actionBarBrowser));
-                    builder.setShowTitle(true);
-                    builder.setActionButton(BitmapFactory.decodeResource(context.getResources(), R.drawable.msg_filled_shareout), LocaleController.getString(R.string.ShareFile), PendingIntent.getBroadcast(ApplicationLoader.applicationContext, 0, share, PendingIntent.FLAG_MUTABLE ), true);
-
-                    CustomTabsIntent intent = builder.build();
-                    intent.setUseNewTask();
-                    intent.launchUrl(context, uri);
-                    return;
-                }
-            }
+            // MODIFIED: Disable custom tabs - always use external browser
+            // Custom tabs and internal browser are disabled, will fall through to external browser
         } catch (Exception e) {
             FileLog.e(e);
         }
         try {
-            final boolean inappBrowser = (
-                allowInAppBrowser && BubbleActivity.instance == null &&
-                SharedConfig.inappBrowser &&
-                TextUtils.isEmpty(browserPackage) &&
-                !RestrictedDomainsList.getInstance().isRestricted(AndroidUtilities.getHostAuthority(uri, true)) &&
-                (uri.getScheme() == null || "https".equals(uri.getScheme()) || "http".equals(uri.getScheme()) || "tonsite".equals(uri.getScheme()))
-                ||
-                isTonsite(uri.toString())
-            );
+            // MODIFIED: Disable internal browser WebView - always use external browser
+            final boolean inappBrowser = false; // Force disable internal browser
             final boolean isIntentScheme = uri.getScheme() != null && uri.getScheme().equalsIgnoreCase("intent");
             if (internalUri && LaunchActivity.instance != null) {
                 openAsInternalIntent(LaunchActivity.instance, uri.toString(), forceNotInternalForApps, forceRequest, inCaseLoading);
             } else {
-                if (inappBrowser) {
-                    if (!openInExternalApp(context, uri.toString(), allowIntent)) {
-                        if (uri != null && uri.getScheme() != null && uri.getScheme().equalsIgnoreCase("intent")) {
-                            final Intent intent = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME);
-                            final String fallbackUrl = intent.getStringExtra("browser_fallback_url");
-                            if (!TextUtils.isEmpty(fallbackUrl)) {
-                                uri = Uri.parse(fallbackUrl);
-                            }
-                        }
-                        openInTelegramBrowser(context, uri.toString(), inCaseLoading);
-                    }
-                } else {
-                    openInExternalBrowser(context, uri.toString(), allowIntent, browserPackage);
-                }
+                // Always open in external browser, never use internal WebView
+                openInExternalBrowser(context, uri.toString(), allowIntent, browserPackage);
             }
         } catch (Exception e) {
             FileLog.e(e);
@@ -677,6 +632,7 @@ public class Browser {
     }
 
     public static boolean isInternalUri(Uri uri, boolean all, boolean[] forceBrowser) {
+        // MODIFIED: Block all internal t.me/telegram links - force external browser
         String host = AndroidUtilities.getHostAuthority(uri);
         host = host != null ? host.toLowerCase() : "";
 
@@ -689,10 +645,11 @@ public class Browser {
 
         Matcher prefixMatcher = LaunchActivity.PREFIX_T_ME_PATTERN.matcher(host);
         if (prefixMatcher.find()) {
-            uri = Uri.parse("https://t.me/" + prefixMatcher.group(1) + (TextUtils.isEmpty(uri.getPath()) ? "" : "/" + uri.getPath()) + (TextUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery()));
-
-            host = uri.getHost();
-            host = host != null ? host.toLowerCase() : "";
+            // Block internal handling of t.me subdomains
+            if (forceBrowser != null) {
+                forceBrowser[0] = true;
+            }
+            return false;
         }
 
         if ("ton".equals(uri.getScheme())) {
@@ -707,42 +664,36 @@ public class Browser {
             }
             return true;
         } else if ("tg".equals(uri.getScheme())) {
-            return true;
+            // Block tg:// scheme - force external browser
+            if (forceBrowser != null) {
+                forceBrowser[0] = true;
+            }
+            return false;
         } else if ("telegram.dog".equals(host)) {
-            String path = uri.getPath();
-            if (path != null && path.length() > 1) {
-                if (all) {
-                    return true;
-                }
-                path = path.substring(1).toLowerCase();
-                if (path.startsWith("blog") || path.equals("iv") || path.startsWith("faq") || path.equals("apps") || path.startsWith("s/")) {
-                    if (forceBrowser != null) {
-                        forceBrowser[0] = true;
-                    }
-                    return false;
-                }
-                return true;
+            // Block all telegram.dog links
+            if (forceBrowser != null) {
+                forceBrowser[0] = true;
             }
+            return false;
         } else if ("telegram.me".equals(host) || "t.me".equals(host)) {
-            String path = uri.getPath();
-            if (path != null && path.length() > 1) {
-                if (all) {
-                    return true;
-                }
-                path = path.substring(1).toLowerCase();
-                if (path.equals("iv") || path.startsWith("s/")) {
-                    if (forceBrowser != null) {
-                        forceBrowser[0] = true;
-                    }
-                    return false;
-                }
-                return true;
+            // Block all t.me and telegram.me links
+            if (forceBrowser != null) {
+                forceBrowser[0] = true;
             }
+            return false;
         } else if ("telegram.org".equals(host) && uri != null && uri.getPath() != null && uri.getPath().startsWith("/blog/")) {
-            return true;
+            // Block telegram.org/blog links
+            if (forceBrowser != null) {
+                forceBrowser[0] = true;
+            }
+            return false;
         } else if (all) {
             if (host.endsWith("telegram.org") || host.endsWith("telegra.ph") || host.endsWith("telesco.pe")) {
-                return true;
+                // Block all telegram-related domains
+                if (forceBrowser != null) {
+                    forceBrowser[0] = true;
+                }
+                return false;
             }
         }
         return false;
