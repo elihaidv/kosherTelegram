@@ -35601,7 +35601,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (cell != null) {
                     cell.resetPressedLink(-1);
                 }
-                didLongPressUsername(cell, url, str.substring(1));
+                // Blocked: Long press on @ mentions is disabled
+                // didLongPressUsername(cell, url, str.substring(1));
                 return;
             }
             if (url == null) {
@@ -35708,18 +35709,19 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             logSponsoredClicked(messageObject, false, false);
             String username = Browser.extractUsername(str);
             if (username != null) {
-                username = username.toLowerCase();
-                if (ChatObject.hasPublicLink(currentChat, username) || UserObject.hasPublicUsername(currentUser, username)) {
-                    if (avatarContainer != null) {
-                        avatarContainer.openProfile(false);
-                    } else {
-                        shakeContent();
-                    }
-                } else if (str.startsWith("@")) {
-                    getMessagesController().openByUserName(username, ChatActivity.this, 0, makeProgressForLink(cell, url));
-                } else {
-                    processExternalUrl(0, str, url, cell, false, false);
-                }
+                // Blocked: Telegram links to profiles/channels/groups are disabled
+                // username = username.toLowerCase();
+                // if (ChatObject.hasPublicLink(currentChat, username) || UserObject.hasPublicUsername(currentUser, username)) {
+                //     if (avatarContainer != null) {
+                //         avatarContainer.openProfile(false);
+                //     } else {
+                //         shakeContent();
+                //     }
+                // } else if (str.startsWith("@")) {
+                //     getMessagesController().openByUserName(username, ChatActivity.this, 0, makeProgressForLink(cell, url));
+                // } else {
+                //     processExternalUrl(0, str, url, cell, false, false);
+                // }
             } else if (str.startsWith("#") || str.startsWith("$")) {
                 if (chatMode == MODE_SCHEDULED || chatMode == MODE_PINNED || chatMode == MODE_SEARCH) {
                     chatActivityDelegate.openHashtagSearch(str);
@@ -35938,14 +35940,15 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 cell.resetPressedLink(-1);
             }
         } else if (url instanceof URLSpanUserMention) {
-            TLRPC.User user = getMessagesController().getUser(Utilities.parseLong(((URLSpanUserMention) url).getURL()));
-            if (user != null) {
-                MessagesController.getInstance(currentAccount).openChatOrProfileWith(user, null, ChatActivity.this, 0, false);
-            }
+            // Blocked: User mention clicks are disabled
+            // TLRPC.User user = getMessagesController().getUser(Utilities.parseLong(((URLSpanUserMention) url).getURL()));
+            // if (user != null) {
+            //     MessagesController.getInstance(currentAccount).openChatOrProfileWith(user, null, ChatActivity.this, 0, false);
+            // }
             if (longPress && cell != null) {
                 cell.resetPressedLink(-1);
             }
-            logSponsoredClicked(messageObject, false, false);
+            // logSponsoredClicked(messageObject, false, false);
         } else if (url instanceof URLSpanNoUnderline) {
             String str = ((URLSpanNoUnderline) url).getURL();
             if (str != null && str.startsWith("tel:")) {
@@ -38723,7 +38726,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 didPressInstantButton(cell, 10);
                 return;
             }
-            openProfile(user, ChatObject.isForum(currentChat) || isThreadChat());
+            // Blocked: Profile access from message headers is disabled
+            // openProfile(user, ChatObject.isForum(currentChat) || isThreadChat());
         }
 
         @Override
