@@ -50,7 +50,8 @@ public class URLSpanNoUnderline extends URLSpan {
             Browser.openUrl(widget.getContext(), uri, false, false, false, null, null, false, false, false);
         } else {
             // Force all links to open in external browser
-            Browser.openUrl(widget.getContext(), url, false, false, false, null, null, false, false, false);
+            Uri uri = Uri.parse(url);
+            Browser.openUrl(widget.getContext(), uri, false, false, false, null, null, false, false, false);
         }
     }
 

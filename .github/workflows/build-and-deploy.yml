@@ -28,7 +28,7 @@ jobs:
         run: chmod +x gradlew
       
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -36,6 +36,44 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      
+      - name: Cache Android NDK
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk
+          key: ${{ runner.os }}-ndk-21.4.7075529
+          restore-keys: |
+            ${{ runner.os }}-ndk-
+      
+      - name: Cache CMake
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/cmake
+          key: ${{ runner.os }}-cmake-3.22.1
+          restore-keys: |
+            ${{ runner.os }}-cmake-
+      
+      - name: Cache Native Build Outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            TMessagesProj/.cxx
+            TMessagesProj/build/intermediates/cmake
+          key: ${{ runner.os }}-native-build-${{ hashFiles('TMessagesProj/jni/**/*.c', 'TMessagesProj/jni/**/*.cpp', 'TMessagesProj/jni/**/*.h', 'TMessagesProj/jni/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-native-build-
+      
+      - name: Cache Build Outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            TMessagesProj/build/intermediates/javac
+            TMessagesProj/build/intermediates/compile_library_classes_jar
+            TMessagesProj/build/tmp
+            TMessagesProj_App/build/intermediates/javac
+          key: ${{ runner.os }}-build-${{ hashFiles('TMessagesProj/src/**/*.java', 'TMessagesProj_App/src/**/*.java') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
       
       - name: Generate version info
         id: version
