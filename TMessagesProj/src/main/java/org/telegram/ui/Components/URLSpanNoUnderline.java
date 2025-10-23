@@ -42,11 +42,15 @@ public class URLSpanNoUnderline extends URLSpan {
     @Override
     public void onClick(View widget) {
         String url = getURL();
+        // MODIFIED: Block @ mentions and force external browser for all links
         if (url.startsWith("@")) {
+            // Block opening @ mentions - they would open channels/users internally
+            // Instead, force to external browser which won't open the app
             Uri uri = Uri.parse("https://t.me/" + url.substring(1));
-            Browser.openUrl(widget.getContext(), uri);
+            Browser.openUrl(widget.getContext(), uri, false, false, false, null, null, false, false, false);
         } else {
-            Browser.openUrl(widget.getContext(), url);
+            // Force all links to open in external browser
+            Browser.openUrl(widget.getContext(), url, false, false, false, null, null, false, false, false);
         }
     }
 

@@ -35,7 +35,8 @@ public class URLSpanBrowser extends URLSpan {
     @Override
     public void onClick(View widget) {
         Uri uri = Uri.parse(getURL());
-        Browser.openUrl(widget.getContext(), uri);
+        // MODIFIED: Force all links to open in external browser
+        Browser.openUrl(widget.getContext(), uri, false, false, false, null, null, false, false, false);
     }
 
     @Override
