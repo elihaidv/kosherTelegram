@@ -119,6 +119,13 @@ import me.vkryl.android.animator.FactorAnimator;
 public class ContactsActivity extends BaseFragment implements FactorAnimator.Target, NotificationCenter.NotificationCenterDelegate, MainTabsActivity.TabFragmentDelegate, WindowAnimatedInsetsProvider.Listener {
     private final int ADDITIONAL_LIST_HEIGHT_DP = Build.VERSION.SDK_INT >= 31 ? 48 : 0;
 
+    /** Contacts tab: search UI removed. */
+    private static final boolean contactsSearchEnabled = false;
+
+    private static int getContactsSearchFieldHeightDp() {
+        return contactsSearchEnabled ? DialogsActivity.SEARCH_FIELD_HEIGHT : 0;
+    }
+
     private static final int ANIMATOR_ID_SEARCH_FIELD_VISIBLE = 0;
 //    private static final int ANIMATOR_ID_SEARCH_FIELD_HEIGHT = 1;
     private static final int ANIMATOR_ID_SEARCH_HAS_QUERY = 2;
@@ -336,7 +343,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
                     sortByName = SharedConfig.sortContactsByName;
                     listViewAdapter.setSortType(sortByName ? 1 : 2, false);
                     sortItem.setIcon(sortByName ? R.drawable.msg_contacts_time : R.drawable.msg_contacts_name);
-                } else if (id == search_button) {
+                } else if (id == search_button && contactsSearchEnabled) {
                     listView.smoothScrollToPosition(0);
 //                    animatorSearchFieldVisible.setValue(true, true);
 //                    animatorSearchFieldHeight.animateTo(dp(DialogsActivity.SEARCH_FIELD_HEIGHT));
@@ -404,8 +411,9 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         }));
         searchItem.setSearchFieldHint(LocaleController.getString(R.string.Search));
         searchItem.setContentDescription(LocaleController.getString(R.string.Search));
-        // Hide search bar completely
-        searchItem.setVisibility(View.GONE);
+        if (!contactsSearchEnabled) {
+            searchItem.setVisibility(View.GONE);
+        }
         if (!createSecretChat && !returnAsResult) {
             sortItem = menu.addItem(sort_button, sortByName ? R.drawable.msg_contacts_time : R.drawable.msg_contacts_name);
             sortItem.setContentDescription(getString(R.string.AccDescrContactSorting));
@@ -420,7 +428,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
                 }
             }
         };
-        searchListViewAdapter.includeSearch = false;
+        searchListViewAdapter.includeSearch = contactsSearchEnabled;
         int inviteViaLink;
         if (chatId != 0) {
             TLRPC.Chat chat = getMessagesController().getChat(chatId);
@@ -458,7 +466,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         };
         listViewAdapter.setSortType(sortItem != null ? (sortByName ? 1 : 2) : 0, false);
         listViewAdapter.setDisableSections(disableSections);
-        listViewAdapter.includeSearch = false;
+        listViewAdapter.includeSearch = contactsSearchEnabled;
 
         fragmentView = contentView = new SizeNotifierFrameLayout(context) {
             @Override
@@ -515,7 +523,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
-                ((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = actionBar.getMeasuredHeight() + dp(DialogsActivity.SEARCH_FIELD_HEIGHT);
+                ((MarginLayoutParams) emptyView.getLayoutParams()).topMargin = actionBar.getMeasuredHeight() + dp(getContactsSearchFieldHeightDp());
                 ((MarginLayoutParams) headerShadowView.getLayoutParams()).topMargin = actionBar.getMeasuredHeight();
 
                 checkUi_listViewPadding();
@@ -550,7 +558,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         emptyView.showProgress(true, false);
         emptyView.title.setText(getString(R.string.NoResult));
         emptyView.subtitle.setText(getString(R.string.SearchEmptyViewFilteredSubtitle2));
-        contentView.addView(emptyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, 12, 52 + 12, 12, 0));
+        contentView.addView(emptyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL, 12, dp(getContactsSearchFieldHeightDp()) + 12, 12, 0));
 
         DefaultItemAnimator defaultItemAnimator = new DefaultItemAnimator();
         defaultItemAnimator.setDelayAnimations(false);
@@ -567,7 +575,11 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         scrollHelper.setScrollListener(this::blur3_InvalidateBlur);
         contentView.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT, 0, -ADDITIONAL_LIST_HEIGHT_DP, 0, -ADDITIONAL_LIST_HEIGHT_DP));
 
-        contentView.addView(searchField, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 52, Gravity.TOP, 6, 0, 6, 0));
+        if (contactsSearchEnabled) {
+            contentView.addView(searchField, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 52, Gravity.TOP, 6, 0, 6, 0));
+        } else {
+            searchField.setVisibility(View.GONE);
+        }
 
         listView.setEmptyView(emptyView);
         listView.setAnimateEmptyView(true, RecyclerListView.EMPTY_VIEW_ANIMATION_TYPE_ALPHA);
@@ -952,8 +964,10 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
             floatingButton.setContentDescription(getString(R.string.CreateNewContact));
         }
 
-        if (initialSearchString != null) {
+        if (contactsSearchEnabled && initialSearchString != null) {
             actionBar.openSearchField(initialSearchString, false);
+            initialSearchString = null;
+        } else {
             initialSearchString = null;
         }
 
@@ -967,7 +981,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         actionBar.setDrawBlurBackground(contentView);
 
 //        animatorSearchFieldHeight.forceFactor(dp(DialogsActivity.SEARCH_FIELD_HEIGHT));
-        animatorSearchFieldVisible.setValue(true, false);
+        animatorSearchFieldVisible.setValue(contactsSearchEnabled, false);
 
         checkUi_searchFieldHint();
 
@@ -1227,7 +1241,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         if (actionBar.isActionModeShowed()) {
             if (invoked) hideActionMode();
             return false;
-        } else if (animatorSearchHasQuery.getValue()) {
+        } else if (contactsSearchEnabled && animatorSearchHasQuery.getValue()) {
             if (invoked) {
                 searchField.editText.getText().clear();
             }
@@ -1620,6 +1634,9 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     private boolean lastIsEmpty;
 
     private void checkUi_searchFieldHint() {
+        if (!contactsSearchEnabled) {
+            return;
+        }
         final boolean isEmpty = listViewAdapter != null && listViewAdapter.isEmpty();
 
         if (lastIsEmpty != isEmpty || TextUtils.isEmpty(searchField.editText.getHint())) {
@@ -1630,6 +1647,9 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     }
 
     private void checkUi_searchFieldY() {
+        if (!contactsSearchEnabled) {
+            return;
+        }
         float top = listView.getY() + listView.getPaddingTop();
         for (int i = 0; i < listView.getChildCount(); ++i) {
             final View child = listView.getChildAt(i);
@@ -1656,6 +1676,12 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
     }
 
     private void checkUi_searchButton() {
+        if (!contactsSearchEnabled) {
+            if (searchItem != null) {
+                searchItem.setVisibility(View.GONE);
+            }
+            return;
+        }
         final float factor1 = 1f - animatorSearchFieldVisible.getFloatValue();
         final float factor2 = 1f - animatorSearchHasQuery.getFloatValue();
         final float factor = factor1 * factor2;
@@ -1698,7 +1724,7 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
         }
 
         final int additionalList = dp(48);
-        final int additionalSearch = dp(DialogsActivity.SEARCH_FIELD_HEIGHT);
+        final int additionalSearch = dp(getContactsSearchFieldHeightDp());
 
         final int mainTabBottom = fragmentView.getMeasuredHeight() - navigationBarHeight - dp(DialogsActivity.MAIN_TABS_MARGIN);
         final int mainTabTop = mainTabBottom - dp(DialogsActivity.MAIN_TABS_HEIGHT);
@@ -1726,6 +1752,8 @@ public class ContactsActivity extends BaseFragment implements FactorAnimator.Tar
             scrollHelper.scrollToPosition(0, 0, false, true);
         }
 //        animatorSearchFieldHeight.animateTo(dp(DialogsActivity.SEARCH_FIELD_HEIGHT));
-        animatorSearchFieldVisible.setValue(true, true);
+        if (contactsSearchEnabled) {
+            animatorSearchFieldVisible.setValue(true, true);
+        }
     }
 }
