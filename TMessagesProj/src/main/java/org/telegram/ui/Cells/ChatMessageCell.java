@@ -329,13 +329,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 avatarImage.setImageBitmap(messageObject.customAvatarDrawable);
             } else if (currentUser != null) {
                 currentPhoto = null;
-                avatarDrawable.setInfo(currentAccount, currentUser);
                 if (isComments) {
-                    avatarImage.setImageBitmap(avatarDrawable);
+                    avatarImage.setInitialsForUserOrChat(currentAccount, currentUser, avatarDrawable);
                 } else {
                     if (currentUser.photo != null) {
                         currentPhoto = currentUser.photo.photo_small;
                     }
+                    avatarDrawable.setInfo(currentAccount, currentUser);
                     avatarImage.setForUserOrChat(currentUser, avatarDrawable, null, LiteMode.isEnabled(LiteMode.FLAGS_CHAT), VectorAvatarThumbDrawable.TYPE_SMALL, false);
                 }
             } else if (currentChat != null) {
@@ -344,29 +344,29 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     final long did = DialogObject.getPeerDialogId(messageObject.messageOwner.from_id);
                     if (did >= 0) {
                         final TLRPC.User user = MessagesController.getInstance(messageObject.currentAccount).getUser(did);
-                        avatarDrawable.setInfo(currentAccount, user);
                         if (isComments) {
-                            avatarImage.setImageBitmap(avatarDrawable);
+                            avatarImage.setInitialsForUserOrChat(currentAccount, user, avatarDrawable);
                         } else {
+                            avatarDrawable.setInfo(currentAccount, user);
                             avatarImage.setForUserOrChat(user, avatarDrawable);
                         }
                     } else {
                         final TLRPC.Chat chat = MessagesController.getInstance(messageObject.currentAccount).getChat(-did);
-                        avatarDrawable.setInfo(currentAccount, chat);
                         if (isComments) {
-                            avatarImage.setImageBitmap(avatarDrawable);
+                            avatarImage.setInitialsForUserOrChat(currentAccount, chat, avatarDrawable);
                         } else {
+                            avatarDrawable.setInfo(currentAccount, chat);
                             avatarImage.setForUserOrChat(chat, avatarDrawable);
                         }
                     }
                 } else {
-                    avatarDrawable.setInfo(currentAccount, currentChat);
                     if (isComments) {
-                        avatarImage.setImageBitmap(avatarDrawable);
+                        avatarImage.setInitialsForUserOrChat(currentAccount, currentChat, avatarDrawable);
                     } else {
                         if (currentChat.photo != null) {
                             currentPhoto = currentChat.photo.photo_small;
                         }
+                        avatarDrawable.setInfo(currentAccount, currentChat);
                         avatarImage.setForUserOrChat(currentChat, avatarDrawable);
                     }
                 }
@@ -6116,7 +6116,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         updateCurrentUserAndChat();
         TLRPC.FileLocation newPhoto = null;
 
-        if (isAvatarVisible) {
+        if (!isComments && isAvatarVisible) {
             if (currentUser != null && currentUser.photo != null) {
                 newPhoto = currentUser.photo.photo_small;
             } else if (currentChat != null && currentChat.photo != null) {
@@ -7117,14 +7117,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                     final int A = a;
                                     post(() -> {
                                         if (user != null) {
-                                            commentAvatarDrawables[A].setInfo(currentAccount, user);
-                                            commentAvatarImages[A].setImageBitmap(commentAvatarDrawables[A]);
+                                            commentAvatarImages[A].setInitialsForUserOrChat(currentAccount, user, commentAvatarDrawables[A]);
                                         } else if (chat != null) {
-                                            commentAvatarDrawables[A].setInfo(currentAccount, chat);
-                                            commentAvatarImages[A].setImageBitmap(commentAvatarDrawables[A]);
+                                            commentAvatarImages[A].setInitialsForUserOrChat(currentAccount, chat, commentAvatarDrawables[A]);
                                         } else {
-                                            commentAvatarDrawables[A].setInfo(id, "", "");
-                                            commentAvatarImages[A].setImageBitmap(commentAvatarDrawables[A]);
+                                            commentAvatarImages[A].setInitialsForPeerId(id, commentAvatarDrawables[A]);
                                         }
                                     });
                                     commentAvatarImagesVisible[a] = true;

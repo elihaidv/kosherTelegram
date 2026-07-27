@@ -511,6 +511,32 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
 
     }
 
+    /**
+     * Shows avatar initials only. Cancels any in-flight load and does not request profile photos.
+     */
+    public void setInitialsForUserOrChat(int currentAccount, TLObject object, AvatarDrawable avatarDrawable) {
+        cancelLoadImage();
+        if (setImageBackup != null) {
+            setImageBackup.clear();
+        }
+        if (object != null) {
+            avatarDrawable.setInfo(currentAccount, object);
+        }
+        setImageBitmap(avatarDrawable);
+    }
+
+    /**
+     * Shows avatar initials for a peer id only. Cancels any in-flight load and does not request profile photos.
+     */
+    public void setInitialsForPeerId(long id, AvatarDrawable avatarDrawable) {
+        cancelLoadImage();
+        if (setImageBackup != null) {
+            setImageBackup.clear();
+        }
+        avatarDrawable.setInfo(id, "", "");
+        setImageBitmap(avatarDrawable);
+    }
+
     public static File getAvatarLocalFile(int currentAccount, TLObject obj) {
         try {
             final String ext = "jpg";

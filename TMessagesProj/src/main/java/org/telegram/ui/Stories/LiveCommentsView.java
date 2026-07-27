@@ -1672,13 +1672,11 @@ public class LiveCommentsView extends FrameLayout implements NotificationCenter.
             int backgroundColor1, backgroundColor2;
             if (message.dialogId >= 0) {
                 final TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(message.dialogId);
-                avatarDrawable.setInfo(user);
-                avatarView.setImageDrawable(avatarDrawable);
+                avatarView.setInitialsForUserOrChat(currentAccount, user);
                 title = UserObject.getForcedFirstName(user);
             } else {
                 final TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-message.dialogId);
-                avatarDrawable.setInfo(chat);
-                avatarView.setImageDrawable(avatarDrawable);
+                avatarView.setInitialsForUserOrChat(currentAccount, chat);
                 title = chat == null ? "" : chat.title;
             }
             backgroundColor1 = getTierOption(currentAccount, (int) message.stars, TIER_COLOR1);
@@ -1982,12 +1980,10 @@ public class LiveCommentsView extends FrameLayout implements NotificationCenter.
             this.sender = sender;
             if (sender.dialogId >= 0) {
                 final TLRPC.User user = MessagesController.getInstance(UserConfig.selectedAccount).getUser(sender.dialogId);
-                avatarDrawable.setInfo(user);
-                avatarView.setImageDrawable(avatarDrawable);
+                avatarView.setInitialsForUserOrChat(UserConfig.selectedAccount, user);
             } else {
                 final TLRPC.Chat chat = MessagesController.getInstance(UserConfig.selectedAccount).getChat(-sender.dialogId);
-                avatarDrawable.setInfo(chat);
-                avatarView.setImageDrawable(avatarDrawable);
+                avatarView.setInitialsForUserOrChat(UserConfig.selectedAccount, chat);
             }
             if (sender.place > 0) {
                 crownView.setImageDrawable(new CrownDrawable(getContext(), sender.place));

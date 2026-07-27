@@ -251,6 +251,14 @@ public class BackupImageView extends View {
         onNewImageSet();
     }
 
+    public void setInitialsForUserOrChat(int currentAccount, TLObject object) {
+        if (avatarDrawable == null) {
+            avatarDrawable = new AvatarDrawable();
+        }
+        imageReceiver.setInitialsForUserOrChat(currentAccount, object, avatarDrawable);
+        onNewImageSet();
+    }
+
     public void setLayerNum(int value) {
         imageReceiver.setLayerNum(value);
     }
