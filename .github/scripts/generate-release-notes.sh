@@ -25,13 +25,19 @@ ${COMMIT_MESSAGE_SINGLE_LINE}
 
 <code>${SHORT_SHA}</code> · ${BRANCH}
 
-<b>What's new in this fork:</b>
-• Profile protection — initials instead of photos in comments
-• No in-app browser — all links open externally
-• Reduced search and profile discovery
+<b>What this fork does:</b>
+• Shows only channels and chats already in your account
+• Blocks discovering or joining new channels inside the app
+• No content moderation or filtering — messages appear as sent
+• Profile protection and no in-app browser
 
-<b>מה כלול במזלג:</b>
-• הגנה על פרופילים — אותיות ראשונות במקום תמונות בתגובות
-• ללא דפדפן פנימי — כל הקישורים נפתחים בדפדפן חיצוני
-• פחות חיפוש וגילוי פרופילים${DOWNLOAD_SECTION}
+<b>Important:</b> This app does not review, filter, or moderate content.
+
+<b>מה המזלג עושה:</b>
+• מציג רק ערוצים וצ'אטים שכבר קיימים בחשבון
+• חוסם גילוי והצטרפות לערוצים חדשים בתוך האפליקציה
+• ללא סינון או מודרציה של תוכן — הודעות מוצגות כפי שנשלחו
+• הגנה על פרופילים וללא דפדפן פנימי
+
+<b>חשוב:</b> האפליקציה לא בודקת, מסננת או מפקחת על תוכן.${DOWNLOAD_SECTION}
 EOF
