@@ -136,3 +136,22 @@ jobs:
           destination: ${{ steps.firebase_project.outputs.project_id }}.firebasestorage.app/latest.apk
           parent: false
           predefinedAcl: publicRead
+
+      - name: Post release to Telegram channel
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          VERSION_CODE: ${{ github.run_number }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          BRANCH: ${{ github.ref_name }}
+          DOWNLOAD_URL: https://storage.googleapis.com/${{ steps.firebase_project.outputs.project_id }}.firebasestorage.app/latest.apk
+          APK_SOURCE: TMessagesProj_App/build/outputs/apk/afat/release/app.apk
+        run: |
+          chmod +x .github/scripts/generate-release-notes.sh .github/scripts/post-to-telegram.sh
+          CAPTION_FILE="/tmp/telegram-release-notes.html"
+          export VERSION_NAME VERSION_CODE COMMIT_SHA COMMIT_MESSAGE BRANCH DOWNLOAD_URL
+          .github/scripts/generate-release-notes.sh > "$CAPTION_FILE"
+          export CAPTION_FILE
+          .github/scripts/post-to-telegram.sh
