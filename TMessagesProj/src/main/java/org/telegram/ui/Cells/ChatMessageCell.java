@@ -328,33 +328,47 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (messageObject.customAvatarDrawable != null) {
                 avatarImage.setImageBitmap(messageObject.customAvatarDrawable);
             } else if (currentUser != null) {
-                if (currentUser.photo != null) {
-                    currentPhoto = currentUser.photo.photo_small;
-                } else {
-                    currentPhoto = null;
-                }
+                currentPhoto = null;
                 avatarDrawable.setInfo(currentAccount, currentUser);
-                avatarImage.setForUserOrChat(currentUser, avatarDrawable, null, LiteMode.isEnabled(LiteMode.FLAGS_CHAT), VectorAvatarThumbDrawable.TYPE_SMALL, false);
-            } else if (currentChat != null) {
-                if (currentChat.photo != null) {
-                    currentPhoto = currentChat.photo.photo_small;
+                if (isComments) {
+                    avatarImage.setImageBitmap(avatarDrawable);
                 } else {
-                    currentPhoto = null;
+                    if (currentUser.photo != null) {
+                        currentPhoto = currentUser.photo.photo_small;
+                    }
+                    avatarImage.setForUserOrChat(currentUser, avatarDrawable, null, LiteMode.isEnabled(LiteMode.FLAGS_CHAT), VectorAvatarThumbDrawable.TYPE_SMALL, false);
                 }
+            } else if (currentChat != null) {
+                currentPhoto = null;
                 if (currentChat.signature_profiles && messageObject.getDialogId() != UserObject.REPLY_BOT) {
                     final long did = DialogObject.getPeerDialogId(messageObject.messageOwner.from_id);
                     if (did >= 0) {
                         final TLRPC.User user = MessagesController.getInstance(messageObject.currentAccount).getUser(did);
                         avatarDrawable.setInfo(currentAccount, user);
-                        avatarImage.setForUserOrChat(user, avatarDrawable);
+                        if (isComments) {
+                            avatarImage.setImageBitmap(avatarDrawable);
+                        } else {
+                            avatarImage.setForUserOrChat(user, avatarDrawable);
+                        }
                     } else {
                         final TLRPC.Chat chat = MessagesController.getInstance(messageObject.currentAccount).getChat(-did);
                         avatarDrawable.setInfo(currentAccount, chat);
-                        avatarImage.setForUserOrChat(chat, avatarDrawable);
+                        if (isComments) {
+                            avatarImage.setImageBitmap(avatarDrawable);
+                        } else {
+                            avatarImage.setForUserOrChat(chat, avatarDrawable);
+                        }
                     }
                 } else {
                     avatarDrawable.setInfo(currentAccount, currentChat);
-                    avatarImage.setForUserOrChat(currentChat, avatarDrawable);
+                    if (isComments) {
+                        avatarImage.setImageBitmap(avatarDrawable);
+                    } else {
+                        if (currentChat.photo != null) {
+                            currentPhoto = currentChat.photo.photo_small;
+                        }
+                        avatarImage.setForUserOrChat(currentChat, avatarDrawable);
+                    }
                 }
             } else if (messageObject.isSponsored()) {
                 if (messageObject.sponsoredPhoto != null) {
@@ -1469,6 +1483,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public boolean isMonoForum;
     public boolean isForumGeneral;
     public boolean isThreadChat;
+    public boolean isComments;
     public boolean hasDiscussion;
     public boolean isPinned;
     private boolean wasPinned;
@@ -5672,6 +5687,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         cell.isMonoForum = isMonoForum;
         cell.isForumGeneral = isForumGeneral;
         cell.isThreadChat = isThreadChat;
+        cell.isComments = isComments;
         cell.hasDiscussion = hasDiscussion;
         cell.isPinned = isPinned;
         cell.linkedChatId = linkedChatId;
@@ -7102,12 +7118,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                     post(() -> {
                                         if (user != null) {
                                             commentAvatarDrawables[A].setInfo(currentAccount, user);
-                                            commentAvatarImages[A].setForUserOrChat(user, commentAvatarDrawables[A]);
+                                            commentAvatarImages[A].setImageBitmap(commentAvatarDrawables[A]);
                                         } else if (chat != null) {
                                             commentAvatarDrawables[A].setInfo(currentAccount, chat);
-                                            commentAvatarImages[A].setForUserOrChat(chat, commentAvatarDrawables[A]);
+                                            commentAvatarImages[A].setImageBitmap(commentAvatarDrawables[A]);
                                         } else {
                                             commentAvatarDrawables[A].setInfo(id, "", "");
+                                            commentAvatarImages[A].setImageBitmap(commentAvatarDrawables[A]);
                                         }
                                     });
                                     commentAvatarImagesVisible[a] = true;

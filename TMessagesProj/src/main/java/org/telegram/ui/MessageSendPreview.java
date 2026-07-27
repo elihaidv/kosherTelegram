@@ -1600,6 +1600,7 @@ public class MessageSendPreview extends Dialog implements NotificationCenter.Not
 
             mainMessageCell.isChat = destCell.isChat;
             mainMessageCell.isThreadChat = destCell.isThreadChat;
+            mainMessageCell.isComments = destCell.isComments;
             mainMessageCell.isSavedChat = destCell.isSavedChat;
             mainMessageCell.isBot = destCell.isBot;
             mainMessageCell.isForum = destCell.isForum;
